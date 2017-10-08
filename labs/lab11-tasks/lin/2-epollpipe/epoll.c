@@ -16,16 +16,16 @@
 #include <string.h>
 #include <sys/eventfd.h>
 
-#define CLIENT_COUNT	10
+#define CLIENT_COUNT    10
 
-#define MSG_SIZE	32
+#define MSG_SIZE    32
 
-#define	ANY		-1
-#define PIPE_READ	0
-#define PIPE_WRITE	1
+#define    ANY        (-1)
+#define PIPE_READ    0
+#define PIPE_WRITE    1
 
-#define MAGIC_EXIT	(1ULL << 63) /* half of (1<<64) */
-#define MAGIC_MASK	0xFF
+#define MAGIC_EXIT    (1ULL << 63) /* half of (1<<64) */
+#define MAGIC_MASK    0xFF
 
 #include "utils.h"
 
@@ -43,7 +43,7 @@ static void set_event(int index, uint64_t *event)
 
 static int get_index(uint64_t event)
 {
-	return (int)(MAGIC_MASK & event);
+	return (int) (MAGIC_MASK & event);
 }
 
 static int server(void)
@@ -58,14 +58,25 @@ static int server(void)
 	int recv_msgs;
 	int recv_count;
 	char msg[MSG_SIZE];
-	int status, rc, index;
+	int status, index;
+	ssize_t rc;
 	uint64_t event;
 
 	printf("server: started\n");
 
 	/* TODO - init epoll and remember to close write pipe heads */
-	for (i = 0; i < CLIENT_COUNT; i++) {
+	efd = epoll_create(1);
+	DIE(efd < 0, "epoll_create failed");
 
+	for (i = 0; i < CLIENT_COUNT; i++) {
+		rc = close(pipes[i][PIPE_WRITE]);
+		DIE(rc < 0, "close failed");
+
+		memset(&ev, 0, sizeof(ev));
+		ev.events = EPOLLIN;
+		ev.data.fd = pipes[i][PIPE_READ];
+		rc = epoll_ctl(efd, EPOLL_CTL_ADD, pipes[i][PIPE_READ], &ev);
+		DIE(rc < 0, "epoll_ctl failed");
 	}
 
 	/* number of received messages */
@@ -73,7 +84,21 @@ static int server(void)
 
 	while (recv_msgs < CLIENT_COUNT) {
 		/* TODO - use epoll to wait to read from pipes */
+		rc = epoll_wait(efd, &ev, 1, -1);
+		DIE(rc < 0, "epoll_wait failed");
 
+		rc = read(ev.data.fd, msg, MSG_SIZE);
+		DIE(rc < 0, "read failed");
+
+		printf("server: received %s\n", msg);
+
+		rc = epoll_ctl(efd, EPOLL_CTL_DEL, ev.data.fd, NULL);
+		DIE(rc < 0, "epoll_ctl failed");
+
+		rc = close(ev.data.fd);
+		DIE(rc < 0, "close failed");
+
+		recv_msgs++;
 	}
 
 	printf("server: going to wait for clients to end\n");
@@ -82,6 +107,9 @@ static int server(void)
 		rc = waitpid(ANY, &status, 0);
 		DIE(rc < 0, "waitpid");
 	}
+
+	rc = close(efd);
+	DIE(rc < 0, "close failed");
 
 	printf("server: exiting\n");
 	return 0;
@@ -107,8 +135,8 @@ static int client(unsigned int index)
 	printf("client %i: writing message\n", index);
 
 	memset(msg, 0, MSG_SIZE);
-	rand_no = (char)(random()%30);
-	sprintf(msg, "<%i>:<%c>", getpid(), 'a'+rand_no);
+	rand_no = (char) (random() % 30);
+	sprintf(msg, "<%i>:<%c>", getpid(), 'a' + rand_no);
 	rc = write(pipes[index][PIPE_WRITE], msg, MSG_SIZE);
 	DIE(rc < 0, "write");
 
@@ -138,7 +166,7 @@ int main(void)
 
 
 	/* Init pipes */
-	for (i = 0 ; i < CLIENT_COUNT; i++) {
+	for (i = 0; i < CLIENT_COUNT; i++) {
 		rc = pipe(pipes[i]);
 		DIE(rc < 0, "pipe");
 	}
@@ -148,7 +176,7 @@ int main(void)
 
 #endif
 
-	/* Crate clients as child processes */
+	/* Create clients as child processes */
 	for (i = 0; i < CLIENT_COUNT; i++) {
 		pid = fork();
 		if (pid < 0) {
