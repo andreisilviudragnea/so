@@ -21,7 +21,7 @@
 
 #define MSG_SIZE	32
 
-#define	ANY		-1
+#define	ANY        (-1)
 #define PIPE_READ	0
 #define PIPE_WRITE	1
 
@@ -33,7 +33,7 @@ static int server(void)
 	struct pollfd pdf[CLIENT_COUNT];
 	int i;
 	int recv_msgs;
-	int recv_count;
+	ssize_t recv_count;
 	char msg[MSG_SIZE];
 	int status, rc;
 
@@ -86,7 +86,8 @@ static int server(void)
 static int client(unsigned int index)
 {
 	char msg[MSG_SIZE];
-	int rand_no, rc;
+	int rand_no;
+	ssize_t rc;
 
 	/* Close read pipe head, wait random time and send a message */
 	printf("client %i: started\n", index);
@@ -96,7 +97,7 @@ static int client(unsigned int index)
 
 	srandom(index);
 
-	sleep(random()%10);
+	sleep((unsigned int) (random() % 10));
 
 	printf("client %i: writing message\n", index);
 
@@ -116,7 +117,8 @@ static int client(unsigned int index)
 
 int main(void)
 {
-	int i, rc;
+	int rc;
+	unsigned int i;
 	pid_t pid;
 
 	/* Init pipes */
