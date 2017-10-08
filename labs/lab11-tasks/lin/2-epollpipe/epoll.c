@@ -56,7 +56,6 @@ static int server(void)
 
 	int i;
 	int recv_msgs;
-	int recv_count;
 	char msg[MSG_SIZE];
 	int status, index;
 	ssize_t rc;
