@@ -17,13 +17,13 @@
 
 #include "utils.h"
 
-#define CLIENT_COUNT	10
+#define CLIENT_COUNT 10
 
-#define MSG_SIZE	32
+#define MSG_SIZE 32
 
-#define	ANY        (-1)
-#define PIPE_READ	0
-#define PIPE_WRITE	1
+#define ANY (-1)
+#define PIPE_READ 0
+#define PIPE_WRITE 1
 
 static int pipes[CLIENT_COUNT][2];
 static int chld_pid[CLIENT_COUNT];
@@ -51,16 +51,14 @@ static int server(void)
 	recv_msgs = 0;
 
 	while (recv_msgs < CLIENT_COUNT) {
-		printf("server: waiting for messages (recv_msgs = %i)\n",
-				recv_msgs);
+		printf("server: waiting for messages (recv_msgs = %i)\n", recv_msgs);
 		rc = poll(pdf, CLIENT_COUNT, -1);
 		DIE(rc < 0, "poll failed");
 
 		for (i = 0; i < CLIENT_COUNT; i++) {
 			if ((pdf[i].revents & POLLIN) != 0) {
 				recv_msgs++;
-				recv_count = read(pipes[i][PIPE_READ], msg,
-						MSG_SIZE);
+				recv_count = read(pipes[i][PIPE_READ], msg, MSG_SIZE);
 				DIE(recv_count < 0, "read");
 
 				msg[recv_count] = '\0';
@@ -101,8 +99,8 @@ static int client(unsigned int index)
 
 	printf("client %i: writing message\n", index);
 
-	rand_no = (char)(random()%30);
-	sprintf(msg, "<%i>:<%c>", getpid(), 'a'+rand_no);
+	rand_no = (char) (random() % 30);
+	sprintf(msg, "<%i>:<%c>", getpid(), 'a' + rand_no);
 	rc = write(pipes[index][PIPE_WRITE], msg, strlen(msg));
 	DIE(rc < 0, "write failed");
 
@@ -121,7 +119,7 @@ int main(void)
 	pid_t pid;
 
 	/* Init pipes */
-	for (i = 0 ; i < CLIENT_COUNT; i++) {
+	for (i = 0; i < CLIENT_COUNT; i++) {
 		rc = pipe(pipes[i]);
 		DIE(rc < 0, "pipe call failed");
 	}
