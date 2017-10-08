@@ -30,11 +30,11 @@
 #include "utils.h"
 
 static int pipes[CLIENT_COUNT][2];
-int chld_pid[CLIENT_COUNT];
+static int chld_pid[CLIENT_COUNT];
 
 /* TODO - uncomment this for task 3 */
 /* #define USE_EVENTFD */
-int event_fd;
+static int event_fd;
 
 static void set_event(int index, uint64_t *event)
 {
@@ -87,7 +87,6 @@ static int server(void)
 	return 0;
 }
 
-
 static int client(unsigned int index)
 {
 	char msg[MSG_SIZE];
@@ -130,7 +129,6 @@ static int client(unsigned int index)
 
 	return 0;
 }
-
 
 int main(void)
 {
