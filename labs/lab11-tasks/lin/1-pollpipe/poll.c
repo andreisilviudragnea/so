@@ -25,8 +25,8 @@
 #define PIPE_READ	0
 #define PIPE_WRITE	1
 
-int pipes[CLIENT_COUNT][2];
-int chld_pid[CLIENT_COUNT];
+static int pipes[CLIENT_COUNT][2];
+static int chld_pid[CLIENT_COUNT];
 
 static int server(void)
 {
@@ -113,7 +113,6 @@ static int client(unsigned int index)
 
 	return 0;
 }
-
 
 int main(void)
 {
