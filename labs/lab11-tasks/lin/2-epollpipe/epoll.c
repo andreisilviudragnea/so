@@ -33,7 +33,7 @@ static int pipes[CLIENT_COUNT][2];
 static int chld_pid[CLIENT_COUNT];
 
 /* TODO - uncomment this for task 3 */
-/* #define USE_EVENTFD */
+#define USE_EVENTFD
 static int event_fd;
 
 static void set_event(int index, uint64_t *event)
@@ -68,6 +68,12 @@ static int server(void)
 	efd = epoll_create(1);
 	DIE(efd < 0, "epoll_create failed");
 
+	memset(&ev, 0, sizeof(ev));
+	ev.events = EPOLLIN;
+	ev.data.fd = event_fd;
+	rc = epoll_ctl(efd, EPOLL_CTL_ADD, event_fd, &ev);
+	DIE(rc < 0, "epoll_ctl failed");
+
 	for (i = 0; i < CLIENT_COUNT; i++) {
 		rc = close(pipes[i][PIPE_WRITE]);
 		DIE(rc < 0, "close failed");
@@ -87,18 +93,28 @@ static int server(void)
 		rc = epoll_wait(efd, &ev, 1, -1);
 		DIE(rc < 0, "epoll_wait failed");
 
-		rc = read(ev.data.fd, msg, MSG_SIZE);
-		DIE(rc < 0, "read failed");
+		if (ev.data.fd == event_fd) {
+			rc = read(event_fd, &event, sizeof(event));
+			DIE(rc < 0, "read failed");
 
-		printf("server: received %s\n", msg);
+			if ((event & ~MAGIC_MASK) == MAGIC_EXIT) {
+				index = get_index(event);
+				printf("server: received index %i\n", index);
 
-		rc = epoll_ctl(efd, EPOLL_CTL_DEL, ev.data.fd, NULL);
-		DIE(rc < 0, "epoll_ctl failed");
+				rc = epoll_ctl(efd, EPOLL_CTL_DEL, pipes[index][PIPE_READ],
+							   NULL);
+				DIE(rc < 0, "epoll_ctl failed");
 
-		rc = close(ev.data.fd);
-		DIE(rc < 0, "close failed");
+				rc = close(pipes[index][PIPE_READ]);
+				DIE(rc < 0, "close failed");
+				recv_msgs++;
+			}
+		} else {
+			rc = read(ev.data.fd, msg, MSG_SIZE);
+			DIE(rc < 0, "read failed");
 
-		recv_msgs++;
+			printf("server: received %s\n", msg);
+		}
 	}
 
 	printf("server: going to wait for clients to end\n");
@@ -107,6 +123,9 @@ static int server(void)
 		rc = waitpid(ANY, &status, 0);
 		DIE(rc < 0, "waitpid");
 	}
+
+	rc = close(event_fd);
+	DIE(rc < 0, "close failed");
 
 	rc = close(efd);
 	DIE(rc < 0, "close failed");
@@ -140,15 +159,14 @@ static int client(unsigned int index)
 	rc = write(pipes[index][PIPE_WRITE], msg, MSG_SIZE);
 	DIE(rc < 0, "write");
 
-
 #ifdef USE_EVENTFD
 	/* TODO 2 - Init event (see set_event()) and use it to signal the
 	 * server of our termination
 	 */
-
-	printf("client %d sending MAGIC exit = 0x%lx\n", index,
-			(unsigned long)event);
-
+	set_event(index, &event);
+	printf("client %d sending MAGIC exit = 0x%lx\n", index, event);
+	rc = write(event_fd, &event, sizeof(event));
+	DIE(rc < 0, "write failed");
 #endif
 
 	printf("client %i: exiting\n", index);
@@ -164,7 +182,6 @@ int main(void)
 	int rc;
 	pid_t pid;
 
-
 	/* Init pipes */
 	for (i = 0; i < CLIENT_COUNT; i++) {
 		rc = pipe(pipes[i]);
@@ -173,7 +190,8 @@ int main(void)
 
 #ifdef USE_EVENTFD
 	/* TODO 2 - create eventfd  - (task3) */
-
+	event_fd = eventfd(0, 0);
+	DIE(event_fd < 0, "eventfd failed");
 #endif
 
 	/* Create clients as child processes */
