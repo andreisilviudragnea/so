@@ -91,7 +91,8 @@ static int server(void)
 static int client(unsigned int index)
 {
 	char msg[MSG_SIZE];
-	int rand_no, rc;
+	int rand_no;
+	ssize_t rc;
 	uint64_t event = 0;
 
 	/* Close read pipe head, wait random time and send a message */
@@ -102,7 +103,7 @@ static int client(unsigned int index)
 
 	srandom(index);
 
-	sleep(random()%10);
+	sleep((unsigned int) (random() % 10));
 
 	printf("client %i: writing message\n", index);
 
