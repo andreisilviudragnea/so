@@ -16,16 +16,16 @@
 #include <string.h>
 #include <sys/eventfd.h>
 
-#define CLIENT_COUNT	10
+#define CLIENT_COUNT    10
 
-#define MSG_SIZE	32
+#define MSG_SIZE    32
 
-#define	ANY		-1
-#define PIPE_READ	0
-#define PIPE_WRITE	1
+#define    ANY        (-1)
+#define PIPE_READ    0
+#define PIPE_WRITE    1
 
-#define MAGIC_EXIT	(1ULL << 63) /* half of (1<<64) */
-#define MAGIC_MASK	0xFF
+#define MAGIC_EXIT    (1ULL << 63) /* half of (1<<64) */
+#define MAGIC_MASK    0xFF
 
 #include "utils.h"
 
@@ -42,7 +42,7 @@ static void set_event(int index, uint64_t *event)
 
 static int get_index(uint64_t event)
 {
-	return (int)(MAGIC_MASK & event);
+	return (int) (MAGIC_MASK & event);
 }
 
 static int server(void)
@@ -55,7 +55,7 @@ static int server(void)
 
 	int i;
 	int recv_msgs;
-	int recv_count;
+	ssize_t recv_count;
 	char msg[MSG_SIZE];
 	int status, rc, index;
 	uint64_t event;
@@ -127,7 +127,8 @@ static int server(void)
 static int client(unsigned int index)
 {
 	char msg[MSG_SIZE];
-	int rand_no, rc;
+	int rand_no;
+	ssize_t rc;
 	uint64_t event = 0;
 
 	/* Close read pipe head, wait random time and send a message */
@@ -138,13 +139,13 @@ static int client(unsigned int index)
 
 	srandom(index);
 
-	sleep(random()%10);
+	sleep((unsigned int) (random() % 10));
 
 	printf("client %i: writing message\n", index);
 
 	memset(msg, 0, MSG_SIZE);
-	rand_no = (char)(random()%30);
-	sprintf(msg, "<%i>:<%c>", getpid(), 'a'+rand_no);
+	rand_no = (char) (random() % 30);
+	sprintf(msg, "<%i>:<%c>", getpid(), 'a' + rand_no);
 	rc = write(pipes[index][PIPE_WRITE], msg, MSG_SIZE);
 	DIE(rc < 0, "write");
 
@@ -152,7 +153,7 @@ static int client(unsigned int index)
 #ifdef USE_EVENTFD
 	set_event(index, &event);
 	printf(" client %d sending MAGIC exit = 0x%lx\n",
-		index, (unsigned long)event);
+		   index, (unsigned long) event);
 
 	rc = write(event_fd, &event, sizeof(event));
 	DIE(rc < 0, "write");
@@ -175,7 +176,7 @@ int main(void)
 
 
 	/* Init pipes */
-	for (i = 0 ; i < CLIENT_COUNT; i++) {
+	for (i = 0; i < CLIENT_COUNT; i++) {
 		rc = pipe(pipes[i]);
 		DIE(rc < 0, "pipe");
 	}
