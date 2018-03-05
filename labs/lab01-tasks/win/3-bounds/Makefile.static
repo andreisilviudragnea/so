@@ -1,20 +1,22 @@
-CC = cl
-L = link
+L = lib
 CFLAGS = /nologo /W3
 
 all: bounds_static.exe
 
-bounds_static.exe: #TODO dependencies
-	#TODO - link static lib with object file to create the executable
+bounds_static.exe: bounds.obj bounds_static.lib
+	cl /Fe$@ $**
 
-bounds_static.lib: #TODO - dependencies
-	#TODO create static lib
+bounds_static.lib: max.obj min.obj
+	$(L) /out:$@ $**
 
-min.obj: #TODO 
+min.obj: min.c 
+	$(CPP) /c /Fo$@ $**
 
-max.obj: #TODO 
+max.obj: max.c 
+	$(CPP) /c /Fo$@ $**
 
-bounds.obj: #TODO 
+bounds.obj: bounds.c
+	$(CPP) /c /Fo$@ $**
 
 clean:
 	del /Q /F *.obj *.lib *.dll *.exe
