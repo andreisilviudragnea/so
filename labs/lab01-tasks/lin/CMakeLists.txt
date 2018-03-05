@@ -1,0 +1,5 @@
+add_subdirectory(1-hello)
+add_subdirectory(2-lib)
+add_subdirectory(3-ops)
+add_subdirectory(4-gdb)
+add_subdirectory(5-linker)
