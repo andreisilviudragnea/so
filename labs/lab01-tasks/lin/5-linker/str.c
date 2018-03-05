@@ -7,6 +7,4 @@
  * Having fun with link-time & run-time
  */
 
-char *str = "SO";
-
-
+char* str = "SO";

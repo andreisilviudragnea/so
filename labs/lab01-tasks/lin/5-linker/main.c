@@ -10,7 +10,7 @@ int str(void);
 
 int main(void)
 {
-	str();
+    str();
 
-	return 0;
+    return 0;
 }
