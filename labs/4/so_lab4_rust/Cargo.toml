@@ -1,0 +1,6 @@
+[package]
+name = "so_lab4_rust"
+version = "0.1.0"
+authors = ["Andrei-Silviu DRAGNEA (24887) <andrei.dragnea@stud.acs.upb.ro>"]
+
+[dependencies]
