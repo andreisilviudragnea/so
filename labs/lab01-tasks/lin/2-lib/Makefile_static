@@ -1,20 +1,20 @@
 CC = gcc
 CFLAGS = -Wall
-
+LDLIBS = -lhexdump_static
 LDFLAGS = -L.
 
 all: main_static
 
+main_static: main.o libhexdump_static.a
+	$(CC) $(CFLAGS) $< -o $@ $(LDLIBS) $(LDFLAGS)
 
-main_static:
-
-libhexdump_static.a:
-
+libhexdump_static.a: hexdump.o sample.o
+	$(AR) rcv $@ $^
 
 main.o: main.c
 hexdump.o: hexdump.c
 sample.o: sample.c
 
-.PHONY:
+.PHONY: clean
 clean:
 	rm -f *.o main_static libhexdump_static.a

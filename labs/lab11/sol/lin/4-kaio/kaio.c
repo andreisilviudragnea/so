@@ -77,7 +77,7 @@ static void init_buffer(void)
 {
 	size_t i;
 
-	srand(time(NULL));
+	srand((unsigned int) time(NULL));
 
 	for (i = 0; i < BUFSIZ; i++)
 		g_buffer[i] = (char) rand();
@@ -88,14 +88,15 @@ static void init_buffer(void)
  * wait for asynchronous I/O operations
  * (eventfd or io_getevents)
  */
-static void wait_aio(io_context_t ctx, int nops)
+static void wait_aio(io_context_t ctx, size_t nops)
 {
 	struct io_event *events;
 	u_int64_t efd_ops = 0;
-	int rc, i;
+	int i;
+	ssize_t rc;
 
 	/* TODO 1 - alloc structure */
-	events = (struct io_event *) malloc(nops * sizeof(struct io_event));
+	events = malloc(nops * sizeof(*events));
 	DIE(events == NULL, "malloc");
 
 #ifndef USE_EVENTFD
@@ -118,7 +119,7 @@ static void wait_aio(io_context_t ctx, int nops)
 		rc = read(efd, &efd_ops, sizeof(efd_ops));
 		DIE(rc < 0, "read eventfd");
 
-		printf("%d aio ops completed\n", (int) efd_ops);
+		printf("%u aio ops completed\n", efd_ops);
 		i += efd_ops;
 	}
 #endif
@@ -140,10 +141,10 @@ static void do_io_async(void)
 	int n_aio_ops, rc;
 
 	/* TODO 1 - allocate iocb and piocb */
-	iocb = (struct iocb *) malloc(n_files * sizeof(*iocb));
+	iocb = malloc(n_files * sizeof(*iocb));
 	DIE(iocb == NULL, "malloc");
 
-	piocb = (struct iocb **) malloc(n_files * sizeof(*piocb));
+	piocb = malloc(n_files * sizeof(*piocb));
 	DIE(piocb == NULL, "malloc");
 
 	/* TODO 1 - initialiaze iocb and piocb */
@@ -158,7 +159,7 @@ static void do_io_async(void)
 	}
 
 	/* TODO 1 - setup aio context */
-	rc = io_setup(n_files, &ctx);
+	rc = io_setup((int) n_files, &ctx);
 	DIE(rc < 0, "io_setup");
 
 	/* TODO 1 - submit aio */

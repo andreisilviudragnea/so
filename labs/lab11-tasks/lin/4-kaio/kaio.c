@@ -28,7 +28,7 @@
 #endif
 
 /* file names */
-static char *files[] = {
+static const char *files[] = {
 	"/tmp/slo.txt",
 	"/tmp/oer.txt",
 	"/tmp/rse.txt",
@@ -37,10 +37,10 @@ static char *files[] = {
 
 
 /* TODO 2 - Uncomment this to use eventfd */
-/* #define USE_EVENTFD	1 */
+#define USE_EVENTFD	1
 
 /* eventfd file descriptor */
-int efd;
+static int efd;
 
 
 /* file descriptors */
@@ -82,7 +82,7 @@ static void init_buffer(void)
 {
 	size_t i;
 
-	srand(time(NULL));
+	srand((unsigned int) time(NULL));
 
 	for (i = 0; i < BUFSIZ; i++)
 		g_buffer[i] = (char) rand();
@@ -93,28 +93,40 @@ static void init_buffer(void)
  * wait for asynchronous I/O operations
  * (eventfd or io_getevents)
  */
-static void wait_aio(io_context_t ctx, int nops)
+static void wait_aio(io_context_t ctx, size_t nops)
 {
 	struct io_event *events;
 	u_int64_t efd_ops = 0;
-	int rc, i;
+	int i;
+	ssize_t rc;
 
 	/* TODO 1 - alloc structure */
+	events = malloc(nops * sizeof(*events));
+	DIE(events == NULL, "malloc failed");
 
 #ifndef USE_EVENTFD
 	/* TODO 1 - wait for async operations to finish
 	 *
 	 *	Use only io_getevents()
 	 */
+	rc = io_getevents(ctx, nops, nops, events, NULL);
+	DIE(rc < 0, "io_getevents failed");
 
 #else
 	/* TODO 2 - wait for async operations to finish
 	 *
 	 *	Use eventfd for completion notify
 	 */
+	for (i = 0; i < nops; ) {
+		rc = read(efd, &efd_ops, sizeof(efd_ops));
+		DIE(rc < 0, "read eventfd");
+
+		printf("%u aio ops completed\n", efd_ops);
+		i += efd_ops;
+	}
 
 #endif
-
+	free(events);
 }
 
 /*
@@ -132,21 +144,30 @@ static void do_io_async(void)
 	int n_aio_ops, rc;
 
 	/* TODO 1 - allocate iocb and piocb */
+	iocb = malloc(n_files * sizeof(*iocb));
+	DIE(iocb == NULL, "malloc failed");
+	piocb = malloc(n_files * sizeof(*piocb));
+	DIE(piocb == NULL, "malloc failed");
 
 	for (i = 0; i < n_files; i++) {
 		/* TODO 1 - initialiaze iocb and piocb */
-
+		io_prep_pwrite(iocb + i, fds[i], g_buffer, BUFSIZ, 0);
+		piocb[i] = iocb + i;
 
 #ifdef USE_EVENTFD
 		/* TODO 2 - set up eventfd notification */
-
+		io_set_eventfd(iocb + i, efd);
 #endif
 	}
 
 	/* TODO 1 - setup aio context */
+	rc = io_setup((int) n_files, &ctx);
+	DIE(rc < 0, "io_setup failed");
 
 
 	/* TODO 1 - submit aio */
+	rc = io_submit(ctx, n_files, piocb);
+	DIE(rc < 0, "io_submit failed");
 
 
 	/* wait for completion*/
@@ -154,7 +175,11 @@ static void do_io_async(void)
 
 
 	/* TODO 1 - destroy aio context */
+	rc = io_destroy(ctx);
+	DIE(rc < 0, "io_destroy failed");
 
+	free(piocb);
+	free(iocb);
 }
 
 int main(void)
@@ -164,14 +189,16 @@ int main(void)
 
 #ifdef USE_EVENTFD
 	/* TODO 2 - init eventfd */
-
+	efd = eventfd(0, 0);
+	DIE(efd < 0, "eventfd failed");
 #endif
 
 	do_io_async();
 
 #ifdef USE_EVENTFD
 	/* TODO 2 - close eventfd */
-
+	int rc = close(efd);
+	DIE(rc < 0, "close failed");
 #endif
 	close_files();
 
