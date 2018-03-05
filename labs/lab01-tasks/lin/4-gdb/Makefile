@@ -1,7 +1,9 @@
 CC = gcc
-CFLAGS = -Wall
+CFLAGS = -Wall -g
 
 all: fault
+
+fault: fault.c
 
 .PHONY:
 clean:
