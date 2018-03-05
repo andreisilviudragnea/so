@@ -1,22 +1,24 @@
-L = link
+L = link /nologo
 CFLAGS = /nologo /W3
 
 all: bounds_dynamic.exe
 
-bounds_dynamic.exe: bounds_dynamic.dll bounds.obj
-	$(L) /out:$@ bounds_dynamic.lib bounds.obj
+bounds_dynamic.exe: bounds_dynamic.lib bounds.obj
+	$(L) /out:$@ $**
+
+bounds_dynamic.lib: bounds_dynamic.dll
 
 bounds_dynamic.dll: min.obj max.obj
 	$(L) /dll /out:$@ /implib:$*.lib $**
 
 min.obj: min.c 
-	$(CPP) $(CFLAGS) /c /Fo$@ $**
+	$(CC) $(CFLAGS) /c /Fo$@ $**
 
 max.obj: max.c 
-	$(CPP) $(CFLAGS) /c /Fo$@ $**
+	$(CC) $(CFLAGS) /c /Fo$@ $**
 
 bounds.obj: bounds.c
-	$(CPP) $(CFLAGS) /c /Fo$@ $**
+	$(CC) $(CFLAGS) /c /Fo$@ $**
 
 clean:
 	del /Q /F *.obj *.lib *.dll *.exe  *.exp

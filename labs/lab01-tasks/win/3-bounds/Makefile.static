@@ -1,4 +1,4 @@
-L = lib
+L = lib /nologo
 CFLAGS = /nologo /W3
 
 all: bounds_static.exe
@@ -10,13 +10,13 @@ bounds_static.lib: max.obj min.obj
 	$(L) /out:$@ $**
 
 min.obj: min.c 
-	$(CPP) /c /Fo$@ $**
+	$(CC) $(CFLAGS) /c /Fo$@ $**
 
 max.obj: max.c 
-	$(CPP) /c /Fo$@ $**
+	$(CC) $(CFLAGS) /c /Fo$@ $**
 
 bounds.obj: bounds.c
-	$(CPP) /c /Fo$@ $**
+	$(CC) $(CFLAGS) /c /Fo$@ $**
 
 clean:
 	del /Q /F *.obj *.lib *.dll *.exe
