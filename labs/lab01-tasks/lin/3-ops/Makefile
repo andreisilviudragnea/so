@@ -12,4 +12,3 @@ mul.o: mul.c mul.h
 
 clean:
 	rm -rf *.o ops
-

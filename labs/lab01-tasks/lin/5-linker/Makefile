@@ -19,5 +19,3 @@ str.o: str.c
 
 clean:
 	rm -rf *.o main
-
-

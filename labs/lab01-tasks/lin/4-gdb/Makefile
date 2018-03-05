@@ -8,5 +8,3 @@ fault: fault.c
 .PHONY:
 clean:
 	rm fault
-
-
