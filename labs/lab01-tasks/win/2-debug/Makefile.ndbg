@@ -1,10 +1,13 @@
 CFLAGS=/nologo /W4 /EHsc /Za
 
-main.exe:       # TODO requirements
+main.exe: main.obj add.obj
+	$(CPP) $(CFLAGS) /Fe$@ $**
 
-main.obj:       # TODO requirements
+main.obj: main.c
+	$(CPP) $(CFLAGS) /c /Fo$@ $**
 
-add.obj:       # TODO requirements
+add.obj: add.c
+	$(CPP) $(CFLAGS) /c /Fo$@ $**
 
 clean:
 	del *.obj *.exe
