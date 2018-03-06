@@ -17,3 +17,8 @@ add_compile_options(
         -flto)
 
 add_subdirectory(1-redirect)
+add_subdirectory(2-lseek)
+add_subdirectory(3-mcat)
+add_subdirectory(4-trouble)
+add_subdirectory(5-singular)
+add_subdirectory(nasty)

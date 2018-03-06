@@ -7,35 +7,31 @@
  * Relation between file pointers and file descriptors
  */
 
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <unistd.h>
-
 #include "utils.h"
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 int main(void)
 {
+    int fd1 = open("Makefile", O_RDWR | O_CLOEXEC);
+    DIE(fd1 < 0, "open file.txt");
 
-	int fd1, fd2, rc, pos;
+    off_t pos = lseek(fd1, 100, SEEK_SET);
+    DIE(pos < 0, "lseek");
 
-	fd1 = open("Makefile", O_RDWR);
-	DIE(fd1 < 0, "open file.txt");
+    int fd2 = dup(fd1);
+    DIE(fd2 < 0, "dup");
 
-	pos = lseek(fd1, 100, SEEK_SET);
-	DIE(pos < 0, "lseek");
+    pos = lseek(fd2, 100, SEEK_CUR);
 
-	fd2 = dup(fd1);
-	DIE(fd2 < 0, "dup");
+    /* printf("pos = %d\n", pos); */
 
-	pos = lseek(fd2, 100, SEEK_CUR);
+    int rc = close(fd1);
+    DIE(rc < 0, "fd1");
 
-	/* printf("pos = %d\n", pos); */
-
-	rc = close(fd1);
-	DIE(rc < 0, "fd1");
-
-	return 0;
+    return 0;
 }
