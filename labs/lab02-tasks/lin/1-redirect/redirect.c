@@ -26,7 +26,6 @@ static void wait_for_input(const char *msg)
     fgets(buf, 32, stdin);
 }
 
-
 int main(void)
 {
     wait_for_input("beginning");

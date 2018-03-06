@@ -29,10 +29,9 @@ int main(int argc, char **argv)
     int fd_src = open(argv[1], O_RDONLY | O_CLOEXEC);
     DIE(fd_src == -1, "opening input file failed");
 
-
     if (argc == 3) {
-        int fd_dst = open(argv[2], O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC,
-                          0644);
+        int fd_dst =
+            open(argv[2], O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0644);
         DIE(fd_dst == -1, "opening output file failed");
 
         int rc = dup2(fd_dst, STDOUT_FILENO);
@@ -49,8 +48,8 @@ int main(int argc, char **argv)
         if (num_read == 0) {
             break;
         }
-        ssize_t num_written = full_write(STDOUT_FILENO, buffer,
-                                         (size_t) num_read);
+        ssize_t num_written =
+            full_write(STDOUT_FILENO, buffer, (size_t) num_read);
         DIE(num_written == -1, "write failed");
     }
 

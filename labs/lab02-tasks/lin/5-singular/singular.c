@@ -51,7 +51,6 @@ static void clean_up(void)
     DIE(rc == -1, "unlink failed");
 }
 
-
 int main(void)
 {
     check_lock();
@@ -62,5 +61,3 @@ int main(void)
 
     return 0;
 }
-
-
