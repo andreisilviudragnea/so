@@ -1,0 +1,12 @@
+BasedOnStyle: Google
+AlignAfterOpenBracket: true
+ColumnLimit: 80
+IndentWidth: 4
+BreakBeforeBraces: Custom
+BraceWrapping:
+    AfterFunction: true
+AllowShortIfStatementsOnASingleLine: false
+AllowShortBlocksOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+IndentCaseLabels: false
+SpaceAfterCStyleCast: true
