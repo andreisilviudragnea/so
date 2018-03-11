@@ -1,4 +1,4 @@
-#include <windows.h>
+#include <Windows.h>
 #include "utils.h"
 
 #define BUF_SIZE 256
